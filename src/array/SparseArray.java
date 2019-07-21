@@ -1,7 +1,9 @@
 package array;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * 稀疏数组
@@ -32,41 +34,38 @@ public class SparseArray {
         chessArr1[10][6] = 1;
         print(chessArr1);
         System.out.println("------------------------------");
-        print(toSparseArray(chessArr1));
+        int[][] chessArr = toSparseArray(chessArr1);
+        print(chessArr);
+        System.out.println("---------------转换后结果---------------");
+        print(toArray(chessArr));
     }
-    static class Data {
-        private int row;
-        private int line;
-        private int val;
-        public int getRow() {
-            return row;
-        }
 
-        public void setRow(int row) {
-            this.row = row;
-        }
 
-        public int getLine() {
-            return line;
+    /**
+     *  将数组保存在磁盘中
+     * @param array 需要保存的数组
+     */
+    public static void wirte(int[][] array) {
+        try {
+            FileChannel outFileChannel = FileChannel.open(Paths.get("D:\\code\\java-data-structure-algorithm\\src\\array", "map.data")
+            , StandardOpenOption.READ,StandardOpenOption.WRITE,StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        public void setLine(int line) {
-            this.line = line;
+    /**
+     *  将二维数组转换成普通数组
+     *  1. 读取
+     * @param sparseArr 稀疏数组
+     * @return 普通数组
+     */
+    private static int[][]  toArray(int[][] sparseArr) {
+        int[][] array = new int[sparseArr[0][0]][sparseArr[0][1]];
+        for (int i = 1; i < sparseArr.length; i++) {
+            array[sparseArr[i][0]][sparseArr[i][1]] = sparseArr[i][2];
         }
-
-        public int getVal() {
-            return val;
-        }
-
-        public void setVal(int val) {
-            this.val = val;
-        }
-
-        public Data(int row, int line, int val) {
-            this.row = row;
-            this.line = line;
-            this.val = val;
-        }
+        return array;
     }
 
     /**
@@ -79,12 +78,10 @@ public class SparseArray {
     private static int[][]  toSparseArray(int[][] chessArr) {
         //遍历数组 统计有效值
         int sum = 0;
-        List<SparseArray.Data> list = new ArrayList<>();
-        for (int i = 0; i < chessArr.length; i++) {
-            for (int j = 0; j < chessArr[i].length; j++) {
-                if (chessArr[i][j]!=0) {
+        for (int[] ints : chessArr) {
+            for (int data : ints) {
+                if (data != 0) {
                     sum++;
-                    list.add(new SparseArray.Data(i, j, chessArr[i][j]));
                 }
             }
         }
@@ -94,14 +91,24 @@ public class SparseArray {
         sparseArr[0][0] = chessArr.length;
         sparseArr[0][1] = chessArr[0].length;
         sparseArr[0][2] = sum;
+        //记录第几个不为0的值
+        int count = 0;
         // 遍历data放入稀疏数组中
-        int row = 1;
-        for (Data data : list) {
-            
+        for (int i = 0; i < chessArr.length; i++) {
+            for (int j = 0; j < chessArr[i].length; j++) {
+                //所有不为0的位置记录它的行和列和值
+                if (chessArr[i][j] != 0) {
+                    count++;
+                    sparseArr[count][0] = i;
+                    sparseArr[count][1] = j;
+                    sparseArr[count][2] = chessArr[i][j];
+                }
+            }
         }
-        list.forEach(data-> sparseArr[data.row][data.line] = data.val);
         return sparseArr;
     }
+
+
 
     private static void print(int[][]chessArr) {
         for (int[] row : chessArr) {
@@ -111,6 +118,7 @@ public class SparseArray {
             System.out.println();
         }
     }
+
 
 
 }
